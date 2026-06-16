@@ -325,8 +325,12 @@ def game_loop(zoo: Zoo):
 
     if zoo.game_over:
         print("\n" + "=" * 50)
-        print("  💸 GAME OVER — OzZoo has gone bankrupt!")
-        print(f"  You survived {zoo.day} days.")
+        if zoo.won:
+            print("  🏆 CONGRATULATIONS — OzZoo is world-class!")
+            print(f"  You reached day {zoo.day} with ${zoo.budget:.2f} and {len(zoo.all_animals())} animals.")
+        else:
+            print("  💸 GAME OVER — OzZoo has gone bankrupt!")
+            print(f"  You survived {zoo.day} days.")
         print("=" * 50)
 
 
