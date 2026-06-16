@@ -1,0 +1,489 @@
+@startuml OzZoo_Class_Diagram
+
+title OzZoo — Complete Class Diagram\n(Factory Method · Observer · Singleton · Decorator)
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle Bold
+skinparam classBackgroundColor #FAFAFA
+skinparam classBorderColor #444444
+skinparam arrowColor #333333
+skinparam arrowThickness 1.5
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 55
+
+' ══════════════════════════════════════════════
+' LEGEND / COLOUR GROUPS
+' ══════════════════════════════════════════════
+skinparam class {
+    BackgroundColor<<abstract>>   #D6EAF8
+    BorderColor<<abstract>>       #1A5276
+    BackgroundColor<<interface>>  #D5F5E3
+    BorderColor<<interface>>      #1D8348
+    BackgroundColor<<singleton>>  #FDEBD0
+    BorderColor<<singleton>>      #784212
+    BackgroundColor<<decorator>>  #F9EBEA
+    BorderColor<<decorator>>      #922B21
+    BackgroundColor<<factory>>    #EBF5FB
+    BorderColor<<factory>>        #154360
+    BackgroundColor<<concrete>>   #FDFEFE
+    BorderColor<<concrete>>       #555555
+    BackgroundColor<<exception>>  #F4ECF7
+    BorderColor<<exception>>      #6C3483
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: animals.py
+' ══════════════════════════════════════════════
+package "animals.py" #EAECEE {
+
+    abstract class Animal <<abstract>> {
+        ' -- Identity --
+        + name : str
+        + age : int
+        + is_alive : bool
+        + food_type : str
+        + space_required : int
+        ' -- Protected welfare stats --
+        # _health : int
+        # _hunger : int
+        # _happiness : int
+        # _energy : int
+        ' -- Properties (read-only) --
+        + health : int  <<property>>
+        + hunger : int  <<property>>
+        + happiness : int  <<property>>
+        + energy : int  <<property>>
+        ' -- Abstract methods --
+        {abstract} + make_sound() : str
+        {abstract} + eat(food_amount: int) : str
+        {abstract} + get_info() : str
+        ' -- Concrete shared methods --
+        + update_stats() : void
+        + heal(amount: int) : void
+        + boost_happiness(amount: int) : void
+        + is_critical() : bool
+        + can_breed() : bool
+        + status_summary() : str
+    }
+
+    class Mammal <<abstract>> {
+        + fur_colour : str
+        + groom() : str
+    }
+
+    class Bird <<abstract>> {
+        + wingspan_cm : int
+        + perch() : str
+        + get_info() : str
+    }
+
+    class Marsupial <<abstract>> {
+        + pouch_young : int
+        + get_info() : str
+    }
+
+    class Carnivore <<abstract>> {
+        + prey_drive : int
+        + get_info() : str
+    }
+
+    class RaptorBird <<abstract>> {
+        + hunt_skill : int
+        + get_info() : str
+    }
+
+    class Kangaroo <<concrete>> {
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + leap() : str
+    }
+
+    class Koala <<concrete>> {
+        + sleep_hours : int
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + nap() : str
+    }
+
+    class Wombat <<concrete>> {
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + burrow() : str
+    }
+
+    class TasmanianDevil <<concrete>> {
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + display_aggression() : str
+    }
+
+    class Dingo <<concrete>> {
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + patrol() : str
+    }
+
+    class WedgeTailedEagle <<concrete>> {
+        + make_sound() : str
+        + eat(food_amount: int) : str
+        + soar() : str
+    }
+
+    ' Inheritance chain — animal hierarchy
+    Animal      <|-- Mammal
+    Animal      <|-- Bird
+    Mammal      <|-- Marsupial
+    Mammal      <|-- Carnivore
+    Bird        <|-- RaptorBird
+    Marsupial   <|-- Kangaroo
+    Marsupial   <|-- Koala
+    Marsupial   <|-- Wombat
+    Carnivore   <|-- TasmanianDevil
+    Carnivore   <|-- Dingo
+    RaptorBird  <|-- WedgeTailedEagle
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: resources.py
+' ══════════════════════════════════════════════
+package "resources.py" #F2F3F4 {
+
+    interface ICleanable <<interface>> {
+        {abstract} + clean() : str
+        {abstract} + get_cleanliness() : int
+    }
+
+    class Enclosure <<concrete>> {
+        ' -- Class-level constants --
+        {static} + VALID_HABITATS : set
+        {static} + HABITAT_COMPATIBILITY : dict
+        ' -- Instance attributes --
+        + enclosure_id : str
+        + habitat_type : str
+        + capacity : int
+        + animals : list[Animal]
+        + upgrade_level : int
+        # _cleanliness : int
+        ' -- ICleanable --
+        + clean() : str
+        + get_cleanliness() : int
+        ' -- Space management --
+        + used_space() : int
+        + available_space() : int
+        + degrade_cleanliness(amount: int) : void
+        ' -- Animal management --
+        + add_animal(animal: Animal) : str
+        + remove_animal(animal: Animal) : str
+        ' -- Tick --
+        + update() : void
+        + status_summary() : str
+    }
+
+    abstract class EnclosureDecorator <<decorator>> {
+        # _enclosure : ICleanable
+        ' -- Delegated ICleanable --
+        + clean() : str
+        + get_cleanliness() : int
+        ' -- Delegated Enclosure API --
+        + update() : void
+        + status_summary() : str
+        + add_animal(animal: Animal) : str
+        + remove_animal(animal: Animal) : str
+        + enclosure_id : str  <<property>>
+        + habitat_type : str  <<property>>
+        + animals : list  <<property>>
+        + used_space() : int
+        + available_space() : int
+    }
+
+    class HeatedHabitatDecorator <<decorator>> {
+        {static} + INSTALL_COST : int = 800
+        + update() : void
+        + status_summary() : str
+    }
+
+    class EnrichmentDecorator <<decorator>> {
+        {static} + INSTALL_COST : int = 400
+        + update() : void
+        + status_summary() : str
+    }
+
+    class ViewingPlatformDecorator <<decorator>> {
+        {static} + INSTALL_COST : int = 600
+        {static} + VISITOR_BONUS : int = 10
+        + visitor_bonus : int  <<property>>
+        + status_summary() : str
+    }
+
+    class Food <<concrete>> {
+        {static} + VALID_TYPES : set
+        + food_type : str
+        + quantity : int
+        + cost_per_unit : float
+        + consume(amount: int) : int
+        + restock(amount: int) : void
+    }
+
+    class Medicine <<concrete>> {
+        + medicine_type : str
+        + quantity : int
+        + heal_amount : int
+        + cost_per_dose : float
+        + treat(animal: Animal) : str
+    }
+
+    ' ICleanable hierarchy
+    ICleanable  <|.. Enclosure
+    ICleanable  <|.. EnclosureDecorator
+    EnclosureDecorator <|-- HeatedHabitatDecorator
+    EnclosureDecorator <|-- EnrichmentDecorator
+    EnclosureDecorator <|-- ViewingPlatformDecorator
+
+    ' Decorator wraps ICleanable
+    EnclosureDecorator o-- ICleanable : wraps >
+
+    ' Enclosure contains Animals
+    Enclosure "1" o-- "0..*" Animal : houses >
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: factory.py
+' ══════════════════════════════════════════════
+package "factory.py" #EBF5FB {
+
+    class AnimalFactory <<factory>> {
+        {static} + CATALOGUE : dict[str, tuple]
+        {static} - _normalise_key(species: str) : str
+        {static} + create(species: str, name: str, age: int) : Animal
+        {static} + get_price(species: str) : int
+        {static} + get_species_class(species: str) : type
+        {static} + list_available() : str
+        {static} + register_species(key: str, cls: type, price: int) : void
+    }
+
+    AnimalFactory ..> Animal : creates >
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: observer.py
+' ══════════════════════════════════════════════
+package "observer.py" #FEF9E7 {
+
+    abstract class HealthObserver <<abstract>> {
+        {abstract} + on_critical_health(animal: Animal, message: str) : void
+    }
+
+    class ManagerAlertObserver <<concrete>> {
+        + pending_alerts : list[str]
+        + on_critical_health(animal: Animal, message: str) : void
+        + flush_alerts() : list[str]
+    }
+
+    class LogObserver <<concrete>> {
+        + log : list[str]
+        + on_critical_health(animal: Animal, message: str) : void
+        + get_log() : list[str]
+    }
+
+    class HealthMonitor <<singleton>> {
+        {static} - _instance : HealthMonitor
+        - _observers : list[HealthObserver]
+        - _previously_critical : set[str]
+        - _initialised : bool
+        {static} + reset() : void
+        + register(observer: HealthObserver) : void
+        + unregister(observer: HealthObserver) : void
+        - _notify(animal: Animal, message: str) : void
+        + check_animals(animals: list[Animal]) : void
+    }
+
+    HealthObserver      <|-- ManagerAlertObserver
+    HealthObserver      <|-- LogObserver
+    HealthMonitor       "1" o-- "0..*" HealthObserver : notifies >
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: visitors_events.py
+' ══════════════════════════════════════════════
+package "visitors_events.py" #F0FFF0 {
+
+    class Visitor <<concrete>> {
+        {static} - _id_counter : int
+        + visitor_id : int
+        # _satisfaction : int
+        + admission_paid : float
+        + satisfaction : int  <<property>>
+        + observe_animal(animal_happiness: int) : void
+        + observe_enclosure(cleanliness: int, platform_bonus: int) : void
+        + maybe_donate() : float
+        + satisfaction_category() : str
+    }
+
+    class ZooEvent <<concrete>> {
+        {static} + EVENT_POOL : list[tuple]
+        + name : str
+        + description : str
+        + effect_type : str
+        + magnitude : int
+        {static} + random_event() : ZooEvent
+        {static} + maybe_trigger(chance: float) : ZooEvent
+        + is_positive() : bool
+    }
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: exceptions.py
+' ══════════════════════════════════════════════
+package "exceptions.py" #F5EEF8 {
+
+    class ZooException <<exception>> {
+    }
+    class InsufficientFundsError <<exception>> {
+    }
+    class HabitatCapacityError <<exception>> {
+    }
+    class IncompatibleSpeciesError <<exception>> {
+    }
+    class InsufficientFoodError <<exception>> {
+    }
+    class AnimalDeathError <<exception>> {
+    }
+    class InvalidActionError <<exception>> {
+    }
+    class DuplicateEnclosureError <<exception>> {
+    }
+
+    ZooException            <|-- InsufficientFundsError
+    ZooException            <|-- HabitatCapacityError
+    ZooException            <|-- IncompatibleSpeciesError
+    ZooException            <|-- InsufficientFoodError
+    ZooException            <|-- AnimalDeathError
+    ZooException            <|-- InvalidActionError
+    ZooException            <|-- DuplicateEnclosureError
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: zoo.py
+' ══════════════════════════════════════════════
+package "zoo.py" #F8F9FA {
+
+    class Zoo <<concrete>> {
+        ' -- Win-condition constants --
+        {static} + WIN_DAY : int = 30
+        {static} + WIN_BUDGET : float = 10000
+        {static} + WIN_ANIMALS : int = 5
+        {static} + WIN_REPUTATION : int = 60
+        {static} + UPGRADE_COSTS : dict
+        ' -- State --
+        + name : str
+        + budget : float
+        + reputation : int
+        + day : int
+        + ticket_price : float
+        + enclosures : list
+        + food_stock : dict[str, Food]
+        + medicine_stock : dict[str, Medicine]
+        + daily_log : list[str]
+        + game_over : bool
+        + won : bool
+        - _total_visitors : int
+        - _total_income : float
+        ' -- Observer wiring --
+        + health_monitor : HealthMonitor
+        + alert_observer : ManagerAlertObserver
+        + log_observer : LogObserver
+        ' -- Lookup helpers --
+        + all_animals() : list[Animal]
+        + all_animals_including_dead() : list[Animal]
+        + get_enclosure(enc_id: str) : Enclosure
+        + get_animal(name: str) : Animal
+        - _base_enclosure(obj) : Enclosure
+        ' -- Purchase actions --
+        + buy_animal(species, name, enclosure_id) : str
+        + buy_food(food_type, amount) : str
+        + buy_medicine(medicine_type, amount) : str
+        + build_enclosure(enc_id, habitat_type, capacity) : str
+        + upgrade_enclosure(enc_id, upgrade_type) : str
+        ' -- Management actions --
+        + feed_all() : list[str]
+        + feed_animal(animal_name, units) : str
+        + treat_animal(animal_name, medicine_type) : str
+        + clean_enclosure(enc_id) : str
+        + set_ticket_price(price) : str
+        + attempt_breeding(enc_id) : str
+        ' -- Tick --
+        + tick() : list[str]
+        - _calculate_visitors() : int
+        - _apply_event(event, log) : void
+        ' -- Display --
+        + status_report() : str
+    }
+}
+
+' ══════════════════════════════════════════════
+' PACKAGE: main.py
+' ══════════════════════════════════════════════
+package "main.py" #F8F8F8 {
+
+    class GameLoop <<concrete>> {
+        ' Represented as a set of module-level functions
+        + setup_new_game() : Zoo
+        + game_loop(zoo: Zoo) : void
+        + print_menu() : void
+        + action_status(zoo) : void
+        + action_advance_day(zoo) : void
+        + action_feed_all(zoo) : void
+        + action_feed_individual(zoo) : void
+        + action_treat_animal(zoo) : void
+        + action_breeding(zoo) : void
+        + action_special_behaviour(zoo) : void
+        + action_buy_animal(zoo) : void
+        + action_buy_food(zoo) : void
+        + action_buy_medicine(zoo) : void
+        + action_catalogue() : void
+        + action_build_enclosure(zoo) : void
+        + action_clean_enclosure(zoo) : void
+        + action_upgrade_enclosure(zoo) : void
+        + action_set_ticket_price(zoo) : void
+    }
+}
+
+' ══════════════════════════════════════════════
+' CROSS-PACKAGE RELATIONSHIPS
+' ══════════════════════════════════════════════
+
+' Zoo owns resources
+Zoo "1" *-- "0..*" Enclosure          : owns enclosures >
+Zoo "1" *-- "1..*" Food               : owns food_stock >
+Zoo "1" *-- "1..*" Medicine           : owns medicine_stock >
+
+' Zoo uses Observer infrastructure
+Zoo "1" *-- "1"    HealthMonitor       : owns (Singleton) >
+Zoo "1" *-- "1"    ManagerAlertObserver : registers >
+Zoo "1" *-- "1"    LogObserver         : registers >
+
+' Zoo delegates creation to factory
+Zoo ..> AnimalFactory                  : delegates creation >
+
+' Zoo triggers events
+Zoo ..> ZooEvent                       : triggers >
+Zoo ..> Visitor                        : creates per tick >
+
+' Zoo applies decorator upgrades (replaces enclosure entry)
+Zoo ..> EnclosureDecorator             : applies upgrades >
+
+' Medicine treats Animals
+Medicine ..> Animal                    : treats >
+
+' HealthMonitor observes Animals
+HealthMonitor ..> Animal               : scans >
+
+' GameLoop / main drives Zoo
+GameLoop ..> Zoo                       : drives >
+GameLoop ..> AnimalFactory             : calls list_available() >
+
+' Zoo raises exceptions
+Zoo ..> ZooException                   : raises >
+
+@enduml
